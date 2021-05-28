@@ -1,0 +1,74 @@
+<template>
+	<layout>
+		<div class="auth-page">
+			<div class="container page">
+				<div class="row">
+					<div class="col-md-6 offset-md-3 col-xs-12">
+						<h1 class="text-xs-center">Login</h1>
+						<p class="text-xs-center">
+							<router-link :to="{ name: 'register' }">Don't have an account</router-link>
+						</p>
+
+						<ul v-if="errors.length > 0" class="error-messages">
+							<li :key="error" v-for="error in errors">{{ error }}</li>
+						</ul>
+
+						<form @submit.prevent="handleLogin">
+							<fieldset class="form-group">
+								<input class="form-control form-control-lg" type="text" placeholder="Email" v-model="email" />
+							</fieldset>
+							<fieldset class="form-group">
+								<input class="form-control form-control-lg" type="password" placeholder="Password" v-model="password" />
+							</fieldset>
+							<button class="btn btn-lg btn-primary pull-xs-right">Login</button>
+						</form>
+					</div>
+				</div>
+			</div>
+		</div>
+	</layout>
+</template>
+
+<script>
+import Layout from '../components/layouts/Layout.vue';
+import axios from 'axios';
+export default {
+	components: { Layout },
+	data() {
+		return {
+			email: '',
+			password: '',
+			errors: [],
+		};
+	},
+	methods: {
+		handleLogin() {
+			axios
+				.post(`https://conduit.productionready.io/api/users/login`, {
+					data: { user: { email: this.email, password: this.password } },
+				})
+				.then((res) => {
+					localStorage.token = res.data.user.token;
+					router.push({ name: 'index' });
+				})
+				.catch((err) => {
+					let errors = err.response.data.errors;
+
+					let arrErrors = [];
+
+					for (let property in errors) {
+						let errMessage = `${property} ${errors[property].join(' and ')}`;
+						arrErrors.push(errMessage);
+					}
+
+					this.errors = arrErrors;
+				});
+		},
+	},
+	setup() {
+		return {};
+	},
+};
+</script>
+
+<style lang="scss" scoped></style>
